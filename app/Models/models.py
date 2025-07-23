@@ -55,9 +55,23 @@ class CommentRedis:
     @staticmethod
     def get_comments_by_influencer(influencer_name):
         comment_ids = r.smembers(f"influencer_comments:{influencer_name}")
-        return [
-            json.loads(r.get(f"comment:{comment_id.decode()}"))
-            for comment_id in comment_ids
-            if r.exists(f"comment:{comment_id.decode()}")
-        ]
+        comments = []
+        for comment_id in comment_ids:
+            cid = comment_id.decode('utf-8') if isinstance(comment_id, bytes) else comment_id
+            if r.exists(f"comment:{cid}"):
+                comments.append(json.loads(r.get(f"comment:{cid}")))
+                print(f"[DEBUG] Tipo de comment_id: {type(comment_id)}, valor: {comment_id}")
+
+        return comments
+
+    @staticmethod
+    def get_comments_by_influencer_and_platform(influencer_name, platform):
+        comment_ids = r.smembers(f"influencer_comments:{influencer_name}")
+        comments = []
+        for comment_id in comment_ids:
+            if r.exists(f"comment:{comment_id}"):
+                comment = json.loads(r.get(f"comment:{comment_id}"))
+                if comment.get("platform") == platform:
+                    comments.append(comment)
+        return comments
 

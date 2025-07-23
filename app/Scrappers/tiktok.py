@@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
 import pandas as pd
 import time
 
-def scrape_tiktok(query: str, num_videos: int = 5):
+def scrape_tiktok(query: str, num_videos: int = 3):
     comments_list = []
 
     with sync_playwright() as p:
