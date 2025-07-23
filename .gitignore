@@ -1,2 +1,12 @@
+# Ignore .env file
 .env
-.venv
+
+# Ignore virtual environment
+.venv/
+
+# Ignore everything in user_data
+user_data/
+
+# (Optional redundancy, but clearer intention)
+user_data/Default/
+user_data/Default/Code Cache/
