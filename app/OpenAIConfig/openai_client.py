@@ -1,15 +1,13 @@
 import os
-import json
 from flask import current_app
-from openai import OpenAI  # Importa el nuevo cliente
+from openai import OpenAI
 import re
 
 class OpenAIClient:
-    def __init__(self):
+    def __init__(self, model="gpt-3.5-turbo-16k"):
+        self.model = model
         api_key = current_app.config.get('OPENAI_API_KEY')
-
         self.client = OpenAI(api_key=api_key)
-
 
     def analyze_sentiment(self, text):
         prompt = (
@@ -19,7 +17,7 @@ class OpenAIClient:
         )
         try:
             resp = self.client.chat.completions.create(
-                model='gpt-4o-mini',
+                model=self.model,
                 messages=[{'role': 'user', 'content': prompt}],
                 temperature=0
             )
@@ -39,3 +37,20 @@ class OpenAIClient:
         except Exception as e:
             print(f"Error al analizar sentimiento: {e}")
             return 'neutral', 0.0
+        
+    def get_completion(self, prompt, temperature=0.7, max_tokens=1500):
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "Eres un experto en análisis de reputación digital."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            # Corrección clave: acceso por propiedad en lugar de subíndice
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"Error en OpenAI API: {str(e)}")
+            raise
