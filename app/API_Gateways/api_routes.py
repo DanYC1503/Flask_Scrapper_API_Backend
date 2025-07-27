@@ -120,28 +120,26 @@ def scrape_all():
 
 @api_bp.route('/scrape/reddit', methods=['POST'])
 def scrape_reddit_route():
-    print("[DEBUG] Request data:", request.data)
-    print("[DEBUG] Request JSON:", request.get_json())
     data = request.get_json()
-    query = data.get('query')
+
+    keywords = data.get('keywords', [])
     limit = int(data.get('limit', 5))
 
-    if not query:
-        return jsonify({"error": "Debe proporcionar una búsqueda"}), 400
+    if not keywords:
+        return jsonify({"error": "Debe proporcionar al menos una palabra clave"}), 400
 
+    query = keywords[0]  # usa la primera keyword para el influencer_name
     influencer_name = query.replace("#", "").replace("@", "")
+
     cached = CommentRedis.get_comments_by_influencer_and_platform(influencer_name, "reddit")
     if cached:
-        print("TikTok: Returning cached comments")
         return jsonify({"message": "Comentarios en caché", "comments": cached}), 200
 
-    # If no cached comments, continue scraping
     if not InfluencerRedis.exists(influencer_name):
         InfluencerRedis.save(influencer_name)
 
-
     gpt = OpenAIClient()
-    scraper = RedditScraper(keywords=[query], limit=limit)
+    scraper = RedditScraper(keywords=keywords, limit=limit)
     raw_posts = scraper.scrape()
 
     comments = []
